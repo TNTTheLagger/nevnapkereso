@@ -1,47 +1,75 @@
-<script setup>
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
-</script>
-
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
+  <div id="app" class="container py-4">
+    <!-- Title centered above everything -->
+    <h1 class="text-center mb-4">Névnap Kereső</h1>
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
+    <!-- Search Form and Results Container -->
+    <div class="row">
+      <!-- Search Form Component -->
+      <div class="col-md-6">
+        <div class="border p-4 rounded shadow-sm">
+          <SearchForm @search="search" />
+        </div>
+      </div>
+
+      <!-- Results Display Component -->
+      <div class="col-md-6">
+        <div class="border p-4 rounded shadow-sm">
+          <ResultsDisplay :result="result" :error="error" />
+        </div>
+      </div>
     </div>
-  </header>
-
-  <main>
-    <TheWelcome />
-  </main>
+  </div>
 </template>
 
+<script>
+import axios from "axios";
+import SearchForm from "./components/SearchForm.vue";
+import ResultsDisplay from "./components/ResultsDisplay.vue";
+
+export default {
+  name: "App",
+  components: {
+    SearchForm,
+    ResultsDisplay,
+  },
+  data() {
+    return {
+      result: null,  // API result
+      error: null,   // Error message if any
+    };
+  },
+  methods: {
+    async search({ date, name }) {
+      this.error = null;
+      this.result = null;
+
+      let url = "/apiminta/nevnapok/";
+
+      if (date) {
+        url += `?nap=${date}`;
+      } else if (name) {
+        url += `?nev=${name}`;
+      } else {
+        this.error = "Kérjük, adjon meg egy dátumot vagy egy nevet!";
+        return;
+      }
+
+      try {
+        const response = await axios.get(url);
+        if (response.data && response.data.hiba) {
+          this.error = response.data.hiba;
+        } else {
+          this.result = response.data;
+        }
+      } catch (error) {
+        this.error = "Hiba történt a keresés során!";
+      }
+    },
+  },
+};
+</script>
+
 <style scoped>
-header {
-  line-height: 1.5;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-}
+/* All custom styles are removed, Bootstrap will handle the design */
 </style>
