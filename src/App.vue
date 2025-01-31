@@ -40,7 +40,7 @@ export default {
     };
   },
   methods: {
-    async search({ date, name }) {
+    search({ date, name }) {
       this.error = null;
       this.result = null;
 
@@ -55,16 +55,23 @@ export default {
         return;
       }
 
-      try {
-        const response = await axios.get(url);
-        if (response.data && response.data.hiba) {
-          this.error = response.data.hiba;
-        } else {
-          this.result = response.data;
-        }
-      } catch (error) {
-        this.error = "Hiba történt a keresés során!";
-      }
+      fetch(url)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error("Hiba történt a keresés során!");
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.hiba) {
+            this.error = data.hiba;
+          } else {
+            this.result = data;
+          }
+        })
+        .catch(() => {
+          this.error = "Hiba történt a keresés során!";
+        });
     },
   },
 };
